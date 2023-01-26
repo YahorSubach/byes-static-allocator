@@ -40,7 +40,7 @@ void test_static_vector_allocator()
 {
 	std::cout << "#\n";
 
-	std::vector<int, byes::memory::StaticVecttorAllocator<int, 32> > v(32);
+	std::vector<int, byes::memory::StaticVectorAllocator<int, 32> > v(32);
 
 	for (int i = 0; i < v.size(); i++)
 	{
@@ -75,7 +75,7 @@ void test_static_vector_allocator_push_back()
 {
 	std::cout << "#\n";
 
-	std::vector<int, byes::memory::StaticVecttorAllocator<int, 32> > v;
+	std::vector<int, byes::memory::StaticVectorAllocator<int, 32> > v;
 
 	for (int i = 0; i < 32; i++)
 	{

@@ -107,13 +107,13 @@ namespace byes {
 
 
         template<typename Type, size_t max_items_cnt, size_t max_allocation_cnt = 24, size_t growth_denominator = 2, size_t extra_data_size = 2 * sizeof(void*)>
-        class StaticVecttorAllocator : public StaticAllocator<Type, VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt, growth_denominator, extra_data_size>::value>
+        class StaticVectorAllocator : public StaticAllocator<Type, VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt, growth_denominator, extra_data_size>::value>
         {
             static const size_t memory_size = VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt, growth_denominator, extra_data_size>::value;
 
         public:
-            StaticVecttorAllocator() : StaticAllocator<Type, memory_size>() {};
-            StaticVecttorAllocator(const StaticAllocator<Type, memory_size>& alloc) : StaticAllocator<Type, memory_size>(alloc) {}
+            StaticVectorAllocator() : StaticAllocator<Type, memory_size>() {};
+            StaticVectorAllocator(const StaticAllocator<Type, memory_size>& alloc) : StaticAllocator<Type, memory_size>(alloc) {}
         };
     }
 }
