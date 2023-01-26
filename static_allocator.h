@@ -9,7 +9,7 @@ namespace byes {
     namespace memory
     {
         template<typename Type>
-        class buffer_allocator
+        class BufferAllocator
         {
         private:
             size_t allocation_position;
@@ -19,10 +19,10 @@ namespace byes {
             size_t& allocation_position_ref;
             size_t size_in_bytes;
 
-            buffer_allocator(void* buffer, size_t size_in_bytes) : allocation_position(0), buffer(static_cast<char*>(buffer)), allocation_position_ref(allocation_position), size_in_bytes(size_in_bytes) {}
+            BufferAllocator(void* buffer, size_t size_in_bytes) : allocation_position(0), buffer(static_cast<char*>(buffer)), allocation_position_ref(allocation_position), size_in_bytes(size_in_bytes) {}
 
             template<typename OtherType>
-            buffer_allocator(const buffer_allocator<OtherType>& alloc) : allocation_position(0), buffer(alloc.buffer), allocation_position_ref(alloc.allocation_position_ref), size_in_bytes(alloc.size_in_bytes) {}
+            BufferAllocator(const BufferAllocator<OtherType>& alloc) : allocation_position(0), buffer(alloc.buffer), allocation_position_ref(alloc.allocation_position_ref), size_in_bytes(alloc.size_in_bytes) {}
 
 
 
@@ -44,39 +44,76 @@ namespace byes {
         };
 
         template<typename Type, size_t size_in_bytes>
-        class static_allocator : public buffer_allocator<Type>
+        class StaticAllocator : public BufferAllocator<Type>
         {
         private:
             char buffer[size_in_bytes];
 
         public:
 
-            static_allocator() : buffer_allocator<Type>(buffer, size_in_bytes) {}
+            StaticAllocator() : BufferAllocator<Type>(buffer, size_in_bytes) {}
 
             template<typename OtherType>
-            static_allocator(const buffer_allocator<OtherType>& alloc) : buffer_allocator<Type>(alloc) {}
+            StaticAllocator(const BufferAllocator<OtherType>& alloc) : BufferAllocator<Type>(alloc) {}
 
             template <class TypeToAllocate>
             struct rebind {
-                typedef buffer_allocator<TypeToAllocate> other;
+                typedef BufferAllocator<TypeToAllocate> other;
             };
 
             template <>
             struct rebind<Type> {
-                typedef static_allocator<Type, size_in_bytes> other;
+                typedef StaticAllocator<Type, size_in_bytes> other;
             };
 
         };
 
 
-        template<typename Type, size_t items_count, size_t service_memory_size = 2 * sizeof(void*), size_t vector_growth_coef = 4>
-        class static_vector_allocator : public static_allocator<Type, vector_growth_coef* items_count * sizeof(Type) + service_memory_size>
+        // helper class to determine buffer size for vector. Based on msvc where vector allocates 2 pointers in addition to data and recalculates size as new_size = max(old_size + 1, old_size + old_size / 2) 
+        template<typename Type, size_t max_items_cnt, size_t max_allocation_cnt = 24, size_t growth_denominator = 2, size_t extra_data_size = 2 * sizeof(void*)>
+        class VectorStaticBufferSize : public VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt - 1, growth_denominator, extra_data_size>
         {
-            static const size_t memory_size = vector_growth_coef * items_count * sizeof(Type) + service_memory_size;
+        protected:
+
+            static const size_t prev_allocated_items_cnt = VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt - 1, growth_denominator, extra_data_size>::new_allocated_items_cnt;
+
+            static const size_t old_value = VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt - 1, growth_denominator, extra_data_size>::value;
+
+            static const size_t new_allocated_items_cnt_via_denominator = prev_allocated_items_cnt + prev_allocated_items_cnt / growth_denominator;
+
+            static const size_t new_allocated_items_cnt =
+                prev_allocated_items_cnt != 0 && max_items_cnt > prev_allocated_items_cnt
+                ?
+                (new_allocated_items_cnt_via_denominator > prev_allocated_items_cnt + 1 ? new_allocated_items_cnt_via_denominator : prev_allocated_items_cnt + 1)
+                :
+                0;
 
         public:
-            static_vector_allocator() : static_allocator<Type, memory_size>() {};
-            static_vector_allocator(const static_allocator<Type, memory_size>& alloc) : static_allocator<Type, memory_size>(alloc) {}
+
+            static const size_t value = old_value + sizeof(Type) * new_allocated_items_cnt;
+        };
+
+        template<typename Type, size_t max_items_cnt, size_t growth_denominator, size_t extra_data_size>
+        class VectorStaticBufferSize<Type, max_items_cnt, 0, growth_denominator, extra_data_size>
+        {
+        protected:
+
+            static const size_t new_allocated_items_cnt = max_items_cnt > 0 ? 1 : 0;
+
+        public:
+
+            static const size_t value = extra_data_size + sizeof(Type) * new_allocated_items_cnt;
+        };
+
+
+        template<typename Type, size_t max_items_cnt, size_t max_allocation_cnt = 24, size_t growth_denominator = 2, size_t extra_data_size = 2 * sizeof(void*)>
+        class StaticVecttorAllocator : public StaticAllocator<Type, VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt, growth_denominator, extra_data_size>::value>
+        {
+            static const size_t memory_size = VectorStaticBufferSize<Type, max_items_cnt, max_allocation_cnt, growth_denominator, extra_data_size>::value;
+
+        public:
+            StaticVecttorAllocator() : StaticAllocator<Type, memory_size>() {};
+            StaticVecttorAllocator(const StaticAllocator<Type, memory_size>& alloc) : StaticAllocator<Type, memory_size>(alloc) {}
         };
     }
 }
