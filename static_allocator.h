@@ -17,12 +17,12 @@ namespace byes {
 
             char* buffer;
             size_t& allocation_position_ref;
-            size_t size;
+            size_t size_in_bytes;
 
-            buffer_allocator(void* buffer, size_t size) : allocation_position(0), buffer(static_cast<char*>(buffer)), allocation_position_ref(allocation_position), size(size) {}
+            buffer_allocator(void* buffer, size_t size_in_bytes) : allocation_position(0), buffer(static_cast<char*>(buffer)), allocation_position_ref(allocation_position), size_in_bytes(size_in_bytes) {}
 
             template<typename OtherType>
-            buffer_allocator(const buffer_allocator<OtherType>& alloc) : allocation_position(0), buffer(alloc.buffer), allocation_position_ref(alloc.allocation_position_ref), size(alloc.size) {}
+            buffer_allocator(const buffer_allocator<OtherType>& alloc) : allocation_position(0), buffer(alloc.buffer), allocation_position_ref(alloc.allocation_position_ref), size_in_bytes(alloc.size_in_bytes) {}
 
 
 
@@ -30,7 +30,7 @@ namespace byes {
 
             value_type* allocate(size_t n)
             {
-                if (allocation_position_ref + n * sizeof(value_type) > size)
+                if (allocation_position_ref + n * sizeof(value_type) > size_in_bytes)
                     throw std::bad_alloc();
 
                 value_type* res = reinterpret_cast<value_type*>(buffer + allocation_position_ref);
@@ -63,16 +63,16 @@ namespace byes {
 
             template <>
             struct rebind<Type> {
-                typedef static_allocator<Type, size_in_bytes> other; // 
+                typedef static_allocator<Type, size_in_bytes> other;
             };
 
         };
 
 
-        template<typename Type, size_t element_count, size_t service_memory_size = 2 * sizeof(void*), size_t vector_growth_coef = 4>
-        class static_vector_allocator : public static_allocator<Type, vector_growth_coef* element_count * sizeof(Type) + service_memory_size>
+        template<typename Type, size_t items_count, size_t service_memory_size = 2 * sizeof(void*), size_t vector_growth_coef = 4>
+        class static_vector_allocator : public static_allocator<Type, vector_growth_coef* items_count * sizeof(Type) + service_memory_size>
         {
-            static const size_t memory_size = vector_growth_coef * element_count * sizeof(Type) + service_memory_size;
+            static const size_t memory_size = vector_growth_coef * items_count * sizeof(Type) + service_memory_size;
 
         public:
             static_vector_allocator() : static_allocator<Type, memory_size>() {};
