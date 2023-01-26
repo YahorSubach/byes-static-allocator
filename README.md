@@ -1,3 +1,3 @@
-# static vector allocator
+## static buffer allocator
 
-Primitive allocator that allows use vector on stack without dynamic allocation.
+Primitive buffer allocator. No deallocation. Just for cases when we need container interface for small data without heap allocation.
