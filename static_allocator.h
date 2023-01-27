@@ -24,7 +24,8 @@ namespace byes {
             template<typename OtherType>
             BufferAllocator(const BufferAllocator<OtherType>& alloc) : allocation_position(0), buffer(alloc.buffer), allocation_position_ref(alloc.allocation_position_ref), size_in_bytes(alloc.size_in_bytes) {}
 
-
+			bool operator==(const BufferAllocator<Type>& alloc) { return buffer == alloc.buffer && allocation_position_ref == alloc.allocation_position_ref && size_in_bytes == alloc.size_in_bytes; };
+			bool operator!=(const BufferAllocator<Type>& alloc) { return !operator==(alloc); };
 
             typedef Type value_type;
 

@@ -87,6 +87,9 @@ void test_static_vector_allocator_push_back()
 		std::cout << v[i] << ' ';
 	}
 
+
+	std::vector<int, byes::memory::StaticVectorAllocator<int, 32> > v1;
+
 	std::cout << '\n';
 }
 
