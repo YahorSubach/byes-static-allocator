@@ -50,7 +50,7 @@ Primitive linear allocator. No deallocation. Just for cases when we need contain
 
    - static vector allocator with items count as allocator parameter
    ```cpp
-    void Fill(std::vector<int, byes::memory::StaticVecttorAllocator<int, 64> >& to_fill)
+    void Fill(std::vector<int, byes::memory::StaticVectorAllocator<int, 64> >& to_fill)
     {
       for (int i = 0; i < 64; i++)
       {
@@ -60,7 +60,7 @@ Primitive linear allocator. No deallocation. Just for cases when we need contain
 
     int main()
     {
-      std::vector<int, byes::memory::StaticVecttorAllocator<int, 64> > values;
+      std::vector<int, byes::memory::StaticVectorAllocator<int, 64> > values;
 
       Fill(values);
 
